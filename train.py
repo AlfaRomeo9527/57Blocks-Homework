@@ -6,7 +6,7 @@ import time
 from rnnclassifier import RNNClassifier
 from torch import nn
 from utils import time_since
-
+from utils import l2_regularization
 
 EPOCH_NUM = 50
 BATCH_SIZE = 8
@@ -24,7 +24,7 @@ train_data = NameDataset(train_file_path)
 train_loader = DataLoader(dataset=train_data, batch_size=BATCH_SIZE, collate_fn=collate_fn, shuffle=True)
 
 # TEST
-test_file_path = "data/names_test.csv"
+test_file_path = "names_test.csv"
 test_data = NameDataset(train_file_path)
 test_loader = DataLoader(dataset=test_data, batch_size=BATCH_SIZE, collate_fn=collate_fn, shuffle=True)
 
@@ -47,7 +47,11 @@ for epoch in range(1, EPOCH_NUM + 1):
         tensor_seq, country_seq = tensor_seq.to(device), country_seq.to(device)
 
         output = model(tensor_seq, len_seq)
-        loss = criterion(output, country_seq)
+
+        #add L2_regularization
+        l2_loss=l2_regularization(model,0.4)
+        loss = criterion(output, country_seq)+l2_loss
+
 
         loss.backward()
         optimizer.step()
@@ -84,7 +88,7 @@ plt.show()
 
 
 my_data = [
-    ('XiaoMing', 'Chinese'), ('Victor', 'French'), ('LiLei', 'Chinese'),('Solomon',"French")
+    ('Li', 'Chinese'), ('Victor', 'French'), ('wang', 'Chinese'),('Laurent',"French")
 ]
 
 tensor_seq, len_seq, country_seq = collate_fn(my_data)
